@@ -19,14 +19,13 @@ public class TheButton {
     static int TIME_INTERVAL_MS = 1000 * 60 * 10;
     static int SECONDS_LEFT_THRESHOLD = 45;
     static Tick previousTick;
-    static boolean firstPost = true;
     static MovingAverage movingAverage = new MovingAverage(10 * 60);
     static DecimalFormat df = new DecimalFormat("#.##");
     public static void main(String[] args) {
         try {
             final Twitter twitter = TwitterFactory.getSingleton();
             // open websocket
-            final WebsocketClientEndpoint clientEndPoint = new WebsocketClientEndpoint(new URI("wss://wss.redditmedia.com/thebutton?h=000c75410dbb6ac618abf6900e80f60079305646&e=1427992297"));
+            final WebsocketClientEndpoint clientEndPoint = new WebsocketClientEndpoint(new URI("wss://wss.redditmedia.com/thebutton?h=b88627013dc3d9b28bc9bf6cbc3a6bdf78fef3c9&e=1428085713"));
 
             // add listener
             clientEndPoint.addMessageHandler(new WebsocketClientEndpoint.MessageHandler() {
@@ -64,15 +63,15 @@ public class TheButton {
                     }
                     sb.append("#thebutton has ").append(tick.payload.seconds_left).append(" seconds left with ").append(tick.payload.participants_text).append(" participants");
                     if(previousTick != null) {
-                        sb.append(" and is being pressed ").append(df.format(movingAverage.getAvg())).append( " times per second");
+                        sb.append(" and is being pressed ").append(df.format(movingAverage.getAvg())).append(" times per second");
                     }
                     sb.append(" @reddit");
                     if(messageDate.getTime() - date.getTime() > TIME_INTERVAL_MS
-                            || tick.payload.seconds_left < SECONDS_LEFT_THRESHOLD
-                            || firstPost) {
-                        firstPost = false;
+                            || tick.payload.seconds_left < SECONDS_LEFT_THRESHOLD) {
                         if(tick.payload.seconds_left < SECONDS_LEFT_THRESHOLD) {
                             SECONDS_LEFT_THRESHOLD = SECONDS_LEFT_THRESHOLD - 1;
+                        } else if (messageDate.getTime() - date.getTime() > TIME_INTERVAL_MS && SECONDS_LEFT_THRESHOLD < 45) {
+                            SECONDS_LEFT_THRESHOLD = SECONDS_LEFT_THRESHOLD + 1;
                         }
                         try {
                             Status status = twitter.updateStatus(sb.toString());
